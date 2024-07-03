@@ -1,1 +1,1 @@
-from . import repositories
+from . import config

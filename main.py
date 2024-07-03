@@ -11,6 +11,7 @@ from starlette.middleware.cors import CORSMiddleware
 import config
 from v1.controllers.config import config_router
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 
