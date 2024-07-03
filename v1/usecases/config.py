@@ -6,6 +6,11 @@ from v1.repositories.config import ConfigRepository
 
 def update(config: ConfigUpdate, database_engine: Engine):
     config_repo = ConfigRepository(database_engine)
+    
+    # TODO: Validate `osu_username` and `osu_password`
+    # TODO: Validate `osu_api_v2_client_id` and `osu_api_v2_client_secret`
+    # TODO: Validate `osu_api_key`
+    # TODO: Validate `osu_daily_api_key`
 
     response = config_repo.update(
         osu_folder_path=config.osu_folder_path,
