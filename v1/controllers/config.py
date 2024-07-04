@@ -5,6 +5,12 @@ from sqlalchemy.engine import Engine
 
 from v1 import usecases
 from v1.models.api import ConfigUpdate
+from v1.usecases.validation import (
+    OsuApiKeyValidationError,
+    OsuApiV2CredentialsValidationError,
+    OsuCrendentialValidationError,
+    OsuDailyApiKeyValidationError,
+)
 
 config_router = APIRouter(prefix="/config", tags=["config"])
 
@@ -19,7 +25,15 @@ async def update_config(
     database_engine: Engine = Depends(get_database_engine),
 ):
     try:
-        response = usecases.config.update(config, database_engine)
+        response = await usecases.config.update(config, database_engine)
         return JSONResponse(status_code=200, content=response)
+    except OsuApiKeyValidationError as e:
+        return JSONResponse(status_code=400, content={"error_message": str(e)})
+    except OsuApiV2CredentialsValidationError as e:
+        return JSONResponse(status_code=400, content={"error_message": str(e)})
+    except OsuDailyApiKeyValidationError as e:
+        return JSONResponse(status_code=400, content={"error_message": str(e)})
+    except OsuCrendentialValidationError as e:
+        return JSONResponse(status_code=400, content={"error_message": str(e)})
     except Exception as e:
-        return JSONResponse(status_code=500, content={"message": str(e)})
+        return JSONResponse(status_code=500, content={"error_message": str(e)})
