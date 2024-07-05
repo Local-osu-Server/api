@@ -5,7 +5,7 @@ from sqlalchemy.engine import Engine
 
 from v1 import usecases
 from v1.models.api import ConfigUpdate
-from v1.usecases.validation import (
+from v1.validation import (
     OsuApiKeyValidationError,
     OsuApiV2CredentialsValidationError,
     OsuCrendentialValidationError,

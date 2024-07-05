@@ -1,5 +1,3 @@
-# TODO: add yml todo-issues to all git repos
-
 from contextlib import asynccontextmanager
 
 import sqlmodel
