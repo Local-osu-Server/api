@@ -6,6 +6,10 @@ from sqlmodel import Session, select
 from v1.models.database.config import Config
 
 
+class NoConfigFoundError(Exception):
+    ...
+
+
 class GetConfigResponse(TypedDict):
     osu_folder_path: str
     display_pp_on_leaderboard: bool
@@ -24,7 +28,6 @@ class GetConfigResponse(TypedDict):
 class ConfigRepository:
     def __init__(self, database_engine: Engine) -> None:
         self.database_engine = database_engine
-        pass
 
     def create(
         self,
@@ -103,56 +106,7 @@ class ConfigRepository:
             config: Config | None = results.one_or_none()
 
             if not config:
-                # TODO: Probably shouldn't be able to create a new config in the update function
-                # because it would be a better implmentation to have this return an error saying there
-                # is no config to update, and then returning it to the target, then the target can
-                # call like /config/create and then create it 
-                # and its kind of weird to have a create function in the update function
-                # and its showing tight coupling between the two functions...
-
-                if (
-                    not osu_api_key
-                    or not osu_daily_api_key
-                    or not osu_api_v2_client_id
-                    or not osu_api_v2_client_secret
-                    or not osu_username
-                    or not osu_password
-                    or not dedicated_dev_server_domain
-                ):
-                    raise Exception(
-                        "All config values are required to create a new config"
-                    )
-
-                kwargs = {
-                    "osu_api_key": osu_api_key,
-                    "osu_daily_api_key": osu_daily_api_key,
-                    "osu_api_v2_client_id": osu_api_v2_client_id,
-                    "osu_api_v2_client_secret": osu_api_v2_client_secret,
-                    "osu_username": osu_username,
-                    "osu_password": osu_password,
-                    "dedicated_dev_server_domain": dedicated_dev_server_domain,
-                }
-
-                if osu_folder_path is not None:
-                    kwargs["osu_folder_path"] = osu_folder_path
-
-                if display_pp_on_leaderboard is not None:
-                    kwargs["display_pp_on_leaderboard"] = display_pp_on_leaderboard
-
-                if rank_scores_by_pp_or_score is not None:
-                    kwargs["rank_scores_by_pp_or_score"] = rank_scores_by_pp_or_score
-
-                if num_scores_seen_on_leaderboards is not None:
-                    kwargs[
-                        "num_scores_seen_on_leaderboards"
-                    ] = num_scores_seen_on_leaderboards
-
-                if allow_pp_from_modified_maps is not None:
-                    kwargs["allow_pp_from_modified_maps"] = allow_pp_from_modified_maps
-
-                self.create(**kwargs)
-
-                return {"message": "Config created successfully"}
+                raise NoConfigFoundError("No config found to update")
 
             if osu_folder_path:
                 config.osu_folder_path = osu_folder_path
