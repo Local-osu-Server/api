@@ -103,8 +103,12 @@ class ConfigRepository:
             config: Config | None = results.one_or_none()
 
             if not config:
-                # create a new config if it doesn't exist
-                # but only if everything is provided to create a new config
+                # TODO: Probably shouldn't be able to create a new config in the update function
+                # because it would be a better implmentation to have this return an error saying there
+                # is no config to update, and then returning it to the target, then the target can
+                # call like /config/create and then create it 
+                # and its kind of weird to have a create function in the update function
+                # and its showing tight coupling between the two functions...
 
                 if (
                     not osu_api_key
