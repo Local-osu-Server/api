@@ -1,9 +1,3 @@
 __pycache__/
-config.py
-!v1/controllers/config.py
-!v1/usecases/config.py
-!v1/models/api/config.py
-!v1/models/database/config.py
-!v1/repositories/config.py
 database.db
 notes.md

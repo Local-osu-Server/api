@@ -1,6 +1,8 @@
+from ossapi import Ossapi, OssapiV1
+
 import v1.adapters.osu_daily_api as osu_daily_api_adapter
 import v1.adapters.osu_direct as osu_direct_adapter
-from ossapi import Ossapi, OssapiV1
+
 
 class OsuApiKeyValidationError(Exception):
     ...
@@ -29,7 +31,9 @@ def osu_api_v2_credentials(client_id: int, client_secret: str) -> dict[str, str]
         if response:
             return {"status": "success", "message": "Osu! API V2 Credentials are valid"}
         else:
-            raise OsuApiV2CredentialsValidationError("Osu! API V2 Credentials are invalid")
+            raise OsuApiV2CredentialsValidationError(
+                "Osu! API V2 Credentials are invalid"
+            )
     except Exception as e:
         raise OsuApiV2CredentialsValidationError(
             f"Osu! API V2 Credentials are invalid: {e}"
@@ -54,7 +58,9 @@ class OsuCrendentialValidationError(Exception):
 
 async def osu_crendentials(username: str, password: str) -> dict[str, str]:
     try:
-        response = await osu_direct_adapter.get_direct_search(username, password, raw_data=True)
+        response = await osu_direct_adapter.get_direct_search(
+            username, password, raw_data=True
+        )
         return {"status": "success", "message": "Osu! credentials are valid"}
     except Exception as e:
         raise OsuCrendentialValidationError(f"Osu! credentials are invalid: {e}")

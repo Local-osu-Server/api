@@ -5,7 +5,8 @@ from pydantic import BaseModel
 
 http_client = AsyncClient()
 
-# TODO: Consider using an object to store the osu!daily api key 
+# TODO: Consider using an object to store the osu!daily api key
+
 
 class RankFromPP(BaseModel):
     rank: int
@@ -14,7 +15,7 @@ class RankFromPP(BaseModel):
 
 async def get_rank_from_pp(
     pp: float,
-    api_key: str,  
+    api_key: str,
 ) -> RankFromPP:
     response = await http_client.get(
         "https://osudaily.net/api/pp.php",

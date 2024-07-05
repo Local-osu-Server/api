@@ -7,10 +7,11 @@ class Config(SQLModel, table=True):
     rank_scores_by_pp_or_score: bool = Field(default=False)
     num_scores_seen_on_leaderboards: int = Field(default=100, ge=0, le=100)
     allow_pp_from_modified_maps: bool = Field(default=True)
-    osu_api_key: str | None = Field(default=None)
+    osu_api_key: str
     osu_daily_api_key: str
     osu_api_v2_client_id: int
     osu_api_v2_client_secret: str
     # TODO: find an alternative to needing the user's osu username and password
-    osu_username: str | None = Field(default=None)
-    osu_password: str | None = Field(default=None)
+    osu_username: str
+    osu_password: str
+    dedicated_dev_server_domain: str  # TODO: figure out a default value for dev server domain

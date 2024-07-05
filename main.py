@@ -6,7 +6,6 @@ from fastapi import FastAPI
 from sqlmodel import create_engine
 from starlette.middleware.cors import CORSMiddleware
 
-import config
 from v1.controllers.config import config_router
 
 
@@ -40,4 +39,4 @@ app.add_middleware(
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", port=config.PORT, reload=True)
+    uvicorn.run("main:app", port=5000, reload=True)

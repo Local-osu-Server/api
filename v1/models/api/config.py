@@ -14,3 +14,4 @@ class ConfigUpdate(BaseModel):
     # TODO: find an alternative to needing the user's osu username and password
     osu_username: str
     osu_password: str
+    dedicated_dev_server_domain: str

@@ -19,6 +19,15 @@ def get_database_engine(request: Request):
     return request.app.state.db
 
 
+@config_router.get("/")
+async def get_config(database_engine: Engine = Depends(get_database_engine)):
+    try:
+        response = await usecases.config.get(database_engine)
+        return JSONResponse(status_code=200, content=response)
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error_message": str(e)})
+
+
 @config_router.post("/update")
 async def update_config(
     config: ConfigUpdate = Body(...),
