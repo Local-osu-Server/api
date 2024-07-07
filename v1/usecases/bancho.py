@@ -5,7 +5,19 @@ from sqlalchemy.engine import Engine
 from v1.errors import RepositoryProfileError, RepositorySessionError, ServerError
 from v1.models.api.bancho import LoginData
 from v1.repositories.profile import GetProfileResponse, ProfileRepository
-from v1.repositories.session import CreateSessionResponse, SessionRepository
+from v1.repositories.session import (
+    CreateSessionResponse,
+    GetSessionResponse,
+    SessionRepository,
+)
+
+
+# TODO: `usercases.session.get` ?
+def get_session(
+    user_id: int, database_engine: Engine
+) -> GetSessionResponse | ServerError:
+    session_repo = SessionRepository(database_engine)
+    return session_repo.get(user_id)
 
 
 class LoginResponse(TypedDict):
@@ -32,7 +44,7 @@ def login(
 
     # if the server restarted, the user's session
     # would already exist in the database
-    session = sesion_repo.get(profile["user_id"])
+    session = sesion_repo.get(profile["user_id"], bypass_error_message=True)
 
     if isinstance(session, ServerError):
         if session.error_name == RepositorySessionError.SESSION_NOT_FOUND:
@@ -47,3 +59,8 @@ def login(
         "profile": profile,
         "session": session,
     }
+
+
+def logout(user_id: int, database_engine: Engine) -> dict[str, str] | ServerError:
+    session_repo = SessionRepository(database_engine)
+    return session_repo.delete(user_id)

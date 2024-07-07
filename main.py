@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from sqlmodel import create_engine
 from starlette.middleware.cors import CORSMiddleware
 
-from v1.common.log import setup_logging
+from v1.common.log import LogTypes, log, setup_logging
 from v1.controllers.bancho import bancho_router
 from v1.controllers.config import config_router
 from v1.controllers.profile import profile_router
@@ -33,6 +33,8 @@ async def lifespan(app: FastAPI):
     app.state.db = create_engine(url="sqlite:///database.db", echo=False, future=True)
 
     sqlmodel.SQLModel.metadata.create_all(app.state.db)
+
+    log("API Service Launched!", LogTypes.SUCCESS)
 
     yield
 
