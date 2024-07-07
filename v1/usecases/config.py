@@ -10,8 +10,8 @@ async def create(config: ConfigUpdate, database_engine: Engine) -> dict[str, str
 
     try:
         # Try to validate all the config values
-        validation.osu_api_key(config.osu_api_key)
-        validation.osu_api_v2_credentials(
+        await validation.osu_api_key(config.osu_api_key)
+        await validation.osu_api_v2_credentials(
             client_id=config.osu_api_v2_client_id,
             client_secret=config.osu_api_v2_client_secret,
         )
@@ -49,8 +49,8 @@ async def update(config: ConfigUpdate, database_engine: Engine) -> dict[str, str
 
     try:
         # Try to validate all the config values
-        validation.osu_api_key(config.osu_api_key)
-        validation.osu_api_v2_credentials(
+        await validation.osu_api_key(config.osu_api_key)
+        await validation.osu_api_v2_credentials(
             client_id=config.osu_api_v2_client_id,
             client_secret=config.osu_api_v2_client_secret,
         )

@@ -1,9 +1,10 @@
-from fastapi import Body, Depends, Request
+from fastapi import Body, Depends
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRouter
 from sqlalchemy.engine import Engine
 
 from v1 import usecases
+from v1.common.database import get_database_engine
 from v1.models.api import ConfigUpdate
 from v1.repositories.config import NoConfigFoundError
 from v1.validation import (
@@ -14,10 +15,6 @@ from v1.validation import (
 )
 
 config_router = APIRouter(prefix="/config", tags=["config"])
-
-
-def get_database_engine(request: Request):
-    return request.app.state.db
 
 
 @config_router.get("/")

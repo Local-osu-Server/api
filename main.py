@@ -6,7 +6,10 @@ from fastapi import FastAPI
 from sqlmodel import create_engine
 from starlette.middleware.cors import CORSMiddleware
 
+from v1.controllers.bancho import bancho_router
 from v1.controllers.config import config_router
+from v1.controllers.profile import profile_router
+from v1.controllers.utils import utils_router
 
 
 @asynccontextmanager
@@ -14,9 +17,15 @@ async def lifespan(app: FastAPI):
 
     # import all models for db to initialize with
     from v1.models.database.config import Config
+    from v1.models.database.profile import Profile
     from v1.models.database.session import Session
 
-    for api_v1_router in [config_router]:
+    for api_v1_router in [
+        config_router,
+        bancho_router,
+        profile_router,
+        utils_router,
+    ]:
         app.include_router(api_v1_router, prefix="/api/v1")
 
     app.state.db = create_engine(url="sqlite:///database.db", echo=False, future=True)

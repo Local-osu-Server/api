@@ -11,6 +11,9 @@ class DirectSearchResult(BaseModel):
     ...
 
 
+# TODO: this shouldn't exist at all tbh
+# this is pretty risky
+# should just use a mirror's API
 async def get_direct_search(
     username: str,
     password: str,

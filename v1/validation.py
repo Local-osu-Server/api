@@ -1,17 +1,35 @@
-from ossapi import Ossapi, OssapiV1
+import random
+
+import aiosu
+from ossapi import Ossapi
 
 import v1.adapters.osu_daily_api as osu_daily_api_adapter
 import v1.adapters.osu_direct as osu_direct_adapter
+
+RANDOM_BEATMAP_SET_IDS = [
+    2186776,
+    2198714,
+    2167421,
+]
+
+RANDOM_BEATMAP_IDS = [
+    4623482,
+    4572837,
+    3989599,
+]
 
 
 class OsuApiKeyValidationError(Exception):
     ...
 
 
-def osu_api_key(api_key: str) -> dict[str, str]:
+async def osu_api_key(api_key: str) -> dict[str, str]:
     try:
-        osu_api = OssapiV1(api_key)
-        response = osu_api.get_beatmaps(beatmapset_id=2186776)
+        # TODO: `aiosu.v1` should be in adapters
+        async with aiosu.v1.Client(api_key) as client:
+            response = await client.get_beatmap(
+                beatmapset_id=random.choice(RANDOM_BEATMAP_SET_IDS)
+            )
         if response:
             return {"status": "success", "message": "Osu! API V1 key is valid"}
         else:
@@ -24,10 +42,11 @@ class OsuApiV2CredentialsValidationError(Exception):
     ...
 
 
-def osu_api_v2_credentials(client_id: int, client_secret: str) -> dict[str, str]:
+async def osu_api_v2_credentials(client_id: int, client_secret: str) -> dict[str, str]:
     try:
+        # TODO: `Ossapi` should be in adapters
         osu_api = Ossapi(client_id, client_secret)
-        response = osu_api.beatmap(beatmap_id=4623482)
+        response = osu_api.beatmap(beatmap_id=random.choice(RANDOM_BEATMAP_IDS))
         if response:
             return {"status": "success", "message": "Osu! API V2 Credentials are valid"}
         else:
@@ -56,6 +75,7 @@ class OsuCrendentialValidationError(Exception):
     ...
 
 
+# TODO: I don't think we'll need crendentials
 async def osu_crendentials(username: str, password: str) -> dict[str, str]:
     try:
         response = await osu_direct_adapter.get_direct_search(

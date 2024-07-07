@@ -5,6 +5,11 @@ from sqlmodel import Session, select
 
 from v1.models.database.config import Config
 
+NO_CONFIG_ERROR_MESSAGES = [
+    "No row was found when one was required",
+    "Expecting value: line 1 column 1 (char 0)",
+]
+
 
 class NoConfigFoundError(Exception):
     ...
@@ -65,10 +70,16 @@ class ConfigRepository:
         return {"message": "Config created successfully"}
 
     def get(self) -> GetConfigResponse:
-        with Session(self.database_engine) as session:
-            statement = select(Config)
-            results = session.exec(statement)
-            config: Config = results.one()
+        # TODO: better error handling
+        try:  # try to get the config
+            with Session(self.database_engine) as session:
+                statement = select(Config)
+                results = session.exec(statement)
+                config: Config = results.one()
+        except Exception as e:
+            exception_message = str(e)
+            if exception_message in NO_CONFIG_ERROR_MESSAGES:
+                raise NoConfigFoundError("No config found")
 
         return {
             "osu_folder_path": config.osu_folder_path,
