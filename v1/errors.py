@@ -3,7 +3,7 @@ from enum import Enum
 from inspect import currentframe
 from typing import Any
 
-from v1.common.log import Colors, log, logger, setup_logging
+from v1.common.log import LogTypes, log, logger, setup_logging
 
 
 class ServerErrorType(Enum):
@@ -110,8 +110,8 @@ class ServerError:
             logger = setup_logging()
 
         if detailed:
-            log(self.detailed_error_message, Colors.RED)
+            log(self.detailed_error_message, LogTypes.ERROR)
             logger.error(self.detailed_error_message)
         else:
-            log(self.detailed_error_message, Colors.RED)
+            log(self.detailed_error_message, LogTypes.ERROR)
             logger.error(self.error_message)

@@ -6,7 +6,7 @@ from typing import TypedDict
 import orjson
 from httpx import AsyncClient
 
-from v1.common.log import Colors, log
+from v1.common.log import log, LogTypes
 from v1.errors import OsuDailyAPIError, ServerError
 
 http_client = AsyncClient()
@@ -32,7 +32,7 @@ async def get_rank_from_pp(
     response = orjson.loads(process.stdout)
 
     if response is None:
-        log("Getting rank from pp, response was None, returning rank 0", Colors.YELLOW)
+        log("Getting rank from pp, response was None, returning rank 0", LogTypes.WARNING)
         return RankFromPP(
             rank=0,
             pp=pp,
