@@ -16,14 +16,8 @@ async def get_profile(
     username: str | None = None,
     database_engine: Engine = Depends(get_database_engine),
 ):
-    try:
-        response = usecases.profile.get(database_engine, user_id, username)
-        return JSONResponse(
-            status_code=200,
-            content=response,
-        )
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={"error": str(e)},
-        )
+    response = usecases.profile.get(database_engine, user_id, username)
+    return JSONResponse(
+        status_code=200,
+        content=response,
+    )

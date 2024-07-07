@@ -3,16 +3,13 @@ from typing import TypedDict
 from sqlalchemy.engine import Engine
 from sqlmodel import Session, select
 
+from v1.errors import RepositoryConfigError, ServerError
 from v1.models.database.config import Config
 
 NO_CONFIG_ERROR_MESSAGES = [
     "No row was found when one was required",
     "Expecting value: line 1 column 1 (char 0)",
 ]
-
-
-class NoConfigFoundError(Exception):
-    ...
 
 
 class GetConfigResponse(TypedDict):
@@ -48,8 +45,24 @@ class ConfigRepository:
         rank_scores_by_pp_or_score: bool = False,
         num_scores_seen_on_leaderboards: int = 100,
         allow_pp_from_modified_maps: bool = True,
-    ) -> dict[str, str]:
+    ) -> dict[str, str] | ServerError:
         with Session(self.database_engine) as session:
+            # check if config already exists
+            statement = select(Config)
+            results = session.exec(statement)
+            config: Config | None = results.one_or_none()
+
+            if config:
+                return ServerError(
+                    error_name=RepositoryConfigError.CONFIG_ALREADY_EXISTS,
+                    message="Config already exists",
+                    file_location=__file__,
+                    line=ServerError.get_current_line(),
+                    local_variables=locals(),
+                    status_code=409,
+                    in_scope_variables=dir(),
+                )
+
             config = Config(
                 osu_folder_path=osu_folder_path,
                 display_pp_on_leaderboard=display_pp_on_leaderboard,
@@ -69,9 +82,8 @@ class ConfigRepository:
 
         return {"message": "Config created successfully"}
 
-    def get(self) -> GetConfigResponse:
-        # TODO: better error handling
-        try:  # try to get the config
+    def get(self) -> GetConfigResponse | ServerError:
+        try:  # special case try-except block
             with Session(self.database_engine) as session:
                 statement = select(Config)
                 results = session.exec(statement)
@@ -79,7 +91,17 @@ class ConfigRepository:
         except Exception as e:
             exception_message = str(e)
             if exception_message in NO_CONFIG_ERROR_MESSAGES:
-                raise NoConfigFoundError("No config found")
+                return ServerError(
+                    error_name=RepositoryConfigError.CONFIG_NOT_FOUND,
+                    message="No config found",
+                    file_location=__file__,
+                    line=ServerError.get_current_line(),
+                    local_variables=locals(),
+                    status_code=404,
+                    in_scope_variables=dir(),
+                )
+            else:
+                raise e
 
         return {
             "osu_folder_path": config.osu_folder_path,
@@ -110,14 +132,22 @@ class ConfigRepository:
         osu_username: str | None,
         osu_password: str | None,
         dedicated_dev_server_domain: str | None,
-    ) -> dict[str, str]:
+    ) -> dict[str, str] | ServerError:
         with Session(self.database_engine) as session:
             statement = select(Config)
             results = session.exec(statement)
             config: Config | None = results.one_or_none()
 
             if not config:
-                raise NoConfigFoundError("No config found to update")
+                return ServerError(
+                    error_name=RepositoryConfigError.CONFIG_NOT_FOUND,
+                    message="No config found",
+                    file_location=__file__,
+                    line=ServerError.get_current_line(),
+                    local_variables=locals(),
+                    status_code=404,
+                    in_scope_variables=dir(),
+                )
 
             if osu_folder_path:
                 config.osu_folder_path = osu_folder_path

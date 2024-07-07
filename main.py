@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from sqlmodel import create_engine
 from starlette.middleware.cors import CORSMiddleware
 
+from v1.common.log import setup_logging
 from v1.controllers.bancho import bancho_router
 from v1.controllers.config import config_router
 from v1.controllers.profile import profile_router
@@ -14,6 +15,7 @@ from v1.controllers.utils import utils_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    app.state.logger = setup_logging()
 
     # import all models for db to initialize with
     from v1.models.database.config import Config

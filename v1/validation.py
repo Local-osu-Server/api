@@ -1,10 +1,12 @@
 import random
 
 import aiosu
+from aiosu.exceptions import APIException
 from ossapi import Ossapi
 
 import v1.adapters.osu_daily_api as osu_daily_api_adapter
 import v1.adapters.osu_direct as osu_direct_adapter
+from v1.errors import ServerError, ValidationError
 
 RANDOM_BEATMAP_SET_IDS = [
     2186776,
@@ -19,58 +21,88 @@ RANDOM_BEATMAP_IDS = [
 ]
 
 
-class OsuApiKeyValidationError(Exception):
-    ...
-
-
-async def osu_api_key(api_key: str) -> dict[str, str]:
-    try:
-        # TODO: `aiosu.v1` should be in adapters
+async def osu_api_key(api_key: str) -> dict[str, str] | ServerError:
+    # TODO: `aiosu.v1` should be in adapters
+    try:  # special try-except block for aiosu
         async with aiosu.v1.Client(api_key) as client:
             response = await client.get_beatmap(
                 beatmapset_id=random.choice(RANDOM_BEATMAP_SET_IDS)
             )
-        if response:
-            return {"status": "success", "message": "Osu! API V1 key is valid"}
-        else:
-            raise OsuApiKeyValidationError("Osu! API V1 key is invalid")
-    except Exception as e:
-        raise OsuApiKeyValidationError(f"Osu! API V1 key is invalid: {e}")
+    except APIException:
+        return ServerError(
+            error_name=ValidationError.OSU_API_KEY_INVALID,
+            message="Osu! API V1 key is invalid",
+            file_location=__file__,
+            line=ServerError.get_current_line(),
+            in_scope_variables=dir(),
+            local_variables=locals(),
+            status_code=400,
+        )
 
-
-class OsuApiV2CredentialsValidationError(Exception):
-    ...
-
-
-async def osu_api_v2_credentials(client_id: int, client_secret: str) -> dict[str, str]:
-    try:
-        # TODO: `Ossapi` should be in adapters
-        osu_api = Ossapi(client_id, client_secret)
-        response = osu_api.beatmap(beatmap_id=random.choice(RANDOM_BEATMAP_IDS))
-        if response:
-            return {"status": "success", "message": "Osu! API V2 Credentials are valid"}
-        else:
-            raise OsuApiV2CredentialsValidationError(
-                "Osu! API V2 Credentials are invalid"
-            )
-    except Exception as e:
-        raise OsuApiV2CredentialsValidationError(
-            f"Osu! API V2 Credentials are invalid: {e}"
+    if response:
+        return {"status": "success", "message": "Osu! API V1 key is valid"}
+    else:
+        return ServerError(
+            error_name=ValidationError.OSU_API_KEY_INVALID,
+            message="Osu! API V1 key is invalid",
+            file_location=__file__,
+            line=ServerError.get_current_line(),
+            in_scope_variables=dir(),
+            local_variables=locals(),
+            status_code=400,
         )
 
 
-class OsuDailyApiKeyValidationError(Exception):
-    ...
-
-
-async def osu_daily_api_key(api_key: str) -> dict[str, str]:
+async def osu_api_v2_credentials(
+    client_id: int,
+    client_secret: str,
+) -> dict[str, str] | ServerError:
     try:
-        response = await osu_daily_api_adapter.get_rank_from_pp(1000, api_key)
-        return {"status": "success", "message": "OsuDaily API key is valid"}
-    except Exception as e:
-        raise OsuDailyApiKeyValidationError(f"OsuDaily API key is invalid: {e}")
+        osu_api = Ossapi(client_id, client_secret)
+        response = osu_api.beatmap(beatmap_id=random.choice(RANDOM_BEATMAP_IDS))
+    except Exception:  # TODO: should be a specific exception
+        return ServerError(
+            error_name=ValidationError.OSU_API_V2_CREDENTIALS_INVALID,
+            message="Osu! API V2 Credentials are invalid",
+            file_location=__file__,
+            line=ServerError.get_current_line(),
+            in_scope_variables=dir(),
+            local_variables=locals(),
+            status_code=400,
+        )
+
+    if response:
+        return {"status": "success", "message": "Osu! API V2 Credentials are valid"}
+    else:
+        return ServerError(
+            error_name=ValidationError.OSU_API_V2_CREDENTIALS_INVALID,
+            message="Osu! API V2 Credentials are invalid",
+            file_location=__file__,
+            line=ServerError.get_current_line(),
+            in_scope_variables=dir(),
+            local_variables=locals(),
+            status_code=400,
+        )
 
 
+async def osu_daily_api_key(api_key: str) -> dict[str, str] | ServerError:
+    response = await osu_daily_api_adapter.get_rank_from_pp(1000, api_key)
+
+    if isinstance(response, ServerError):
+        return ServerError(
+            error_name=ValidationError.OSU_DAILY_API_KEY_INVALID,
+            message="OsuDaily API key is invalid",
+            file_location=__file__,
+            line=ServerError.get_current_line(),
+            in_scope_variables=dir(),
+            local_variables=locals(),
+            status_code=400,
+        )
+
+    return {"status": "success", "message": "OsuDaily API key is valid"}
+
+
+# -----------------------------------------------------------------------------------------
 class OsuCrendentialValidationError(Exception):
     ...
 

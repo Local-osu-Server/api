@@ -3,6 +3,7 @@ from typing import TypedDict
 from sqlalchemy.engine import Engine
 from sqlmodel import Session, select
 
+from v1.errors import RepositorySessionError, ServerError
 from v1.models.database.session import Session as UserSession
 
 
@@ -26,7 +27,7 @@ class SessionRepository:
     def __init__(self, database_engine: Engine) -> None:
         self.database_engine = database_engine
 
-    def get(self, user_id: int) -> GetSessionResponse:
+    def get(self, user_id: int) -> GetSessionResponse | ServerError:
         with Session(self.database_engine) as session:
             statement = select(UserSession).where(
                 UserSession.current_user_id == user_id
@@ -35,7 +36,15 @@ class SessionRepository:
             user_session: UserSession | None = result.one_or_none()
 
             if user_session is None:
-                raise NoSessionFoundError(f"No session found for user id {user_id}")
+                return ServerError(
+                    error_name=RepositorySessionError.SESSION_NOT_FOUND,
+                    message=f"Session with user_id {user_id} not found",
+                    file_location=__file__,
+                    line=ServerError.get_current_line(),
+                    local_variables=locals(),
+                    status_code=404,
+                    in_scope_variables=dir(),
+                )
 
             return GetSessionResponse(
                 current_user_id=user_session.current_user_id,

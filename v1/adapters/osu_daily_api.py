@@ -6,6 +6,9 @@ from typing import TypedDict
 import orjson
 from httpx import AsyncClient
 
+from v1.common.log import Colors, log
+from v1.errors import OsuDailyAPIError, ServerError
+
 http_client = AsyncClient()
 
 # TODO: Consider using an object to store the osu!daily api key
@@ -22,25 +25,34 @@ class RankFromPP(TypedDict):
 async def get_rank_from_pp(
     pp: float,
     api_key: str,
-) -> RankFromPP:
-    try:
-        curl_command = f'curl "https://osudaily.net/api/pp.php?k={api_key}&t=pp&v={pp}"'
-        process = subprocess.run(curl_command, text=True, capture_output=True)
-        response = orjson.loads(process.stdout)
-    except Exception as e:
-        raise Exception(f"Error getting rank from pp: {e}")
+) -> RankFromPP | ServerError:
+    # TODO: better error handling
+    curl_command = f'curl "https://osudaily.net/api/pp.php?k={api_key}&t=pp&v={pp}"'
+    process = subprocess.run(curl_command, text=True, capture_output=True)
+    response = orjson.loads(process.stdout)
 
     if response is None:
-        print("osu_daily_api, response was None")
+        log("Getting rank from pp, response was None, returning rank 0", Colors.YELLOW)
         return RankFromPP(
             rank=0,
             pp=pp,
         )
-    else:
-        return RankFromPP(
-            rank=response["rank"],
-            pp=pp,
+
+    if "error" in response:
+        return ServerError(
+            error_name=OsuDailyAPIError.OSU_DAILY_API_KEY_INVALID,
+            message="OsuDaily API key is invalid",
+            file_location=__file__,
+            line=ServerError.get_current_line(),
+            in_scope_variables=dir(),
+            local_variables=locals(),
+            status_code=400,
         )
+
+    return RankFromPP(
+        rank=response["rank"],
+        pp=pp,
+    )
 
     """
     try:

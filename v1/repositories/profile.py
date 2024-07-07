@@ -3,6 +3,7 @@ from typing import TypedDict
 from sqlalchemy.engine import Engine
 from sqlmodel import Session, select
 
+from v1.errors import RepositoryProfileError, ServerError
 from v1.models.database.profile import Profile
 
 
@@ -27,14 +28,22 @@ class ProfileRepository:
     def __init__(self, database_engine: Engine) -> None:
         self.database_engine = database_engine
 
-    def get_by_user_id(self, user_id: int) -> GetProfileResponse:
+    def get_by_user_id(self, user_id: int) -> GetProfileResponse | ServerError:
         with Session(self.database_engine) as session:
             statement = select(Profile).where(Profile.user_id == user_id)
             result = session.exec(statement)
             profile: Profile | None = result.one_or_none()
 
             if profile is None:
-                raise NoProfileFoundError(f"Profile with user id {user_id} not found")
+                return ServerError(
+                    error_name=RepositoryProfileError.PROFILE_NOT_FOUND,
+                    message=f"Profile with user_id {user_id} not found",
+                    file_location=__file__,
+                    line=ServerError.get_current_line(),
+                    local_variables=locals(),
+                    status_code=404,
+                    in_scope_variables=dir(),
+                )
 
             return GetProfileResponse(
                 user_id=profile.user_id,
@@ -45,15 +54,22 @@ class ProfileRepository:
                 pp=profile.pp,
             )
 
-    def get_by_username(self, username: str) -> GetProfileResponse:
+    def get_by_username(self, username: str) -> GetProfileResponse | ServerError:
         with Session(self.database_engine) as session:
             statement = select(Profile).where(Profile.username == username)
             result = session.exec(statement)
             profile: Profile | None = result.one_or_none()
 
             if profile is None:
-                # TODO: create a custom exception for this
-                raise NoProfileFoundError(f"Profile with username {username} not found")
+                return ServerError(
+                    error_name=RepositoryProfileError.PROFILE_NOT_FOUND,
+                    message=f"Profile with username {username} not found",
+                    file_location=__file__,
+                    line=ServerError.get_current_line(),
+                    local_variables=locals(),
+                    status_code=404,
+                    in_scope_variables=dir(),
+                )
 
             return GetProfileResponse(
                 user_id=profile.user_id,
